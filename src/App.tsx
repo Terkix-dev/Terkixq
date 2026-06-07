@@ -3133,9 +3133,9 @@ export default function App() {
                 {/* Fully Integrated Termux Command Console Input field of Termux */}
                 <form
                   onSubmit={handleCommandSubmit}
-                  className="terkix-input-dock h-10 sm:h-12 border-t border-[#1b212c] px-2.5 sm:px-3.5 flex items-center gap-1.5 sm:gap-2.5 bg-[#02050a]/95 shrink-0 focus-within:bg-[#03070f] focus-within:border-[#3FB950]/55 transition-all duration-150 shadow-[0_-18px_40px_rgba(0,0,0,0.38)]"
+                  className="terkix-input-dock h-12 sm:h-14 border border-[#1b212c] px-3 sm:px-4 flex items-center gap-2 sm:gap-3 bg-[#02050a]/95 shrink-0 focus-within:bg-[#03070f] focus-within:border-transparent transition-all duration-150 shadow-[0_-18px_40px_rgba(0,0,0,0.38)] rounded-t-2xl"
                 >
-                  <span className="text-emerald-400 font-extrabold font-mono text-[10px] sm:text-[12.5px] select-none tracking-tight animate-pulse">~ $</span>
+                  <span className="text-emerald-400 font-extrabold font-mono text-[11px] sm:text-[13px] select-none tracking-tight animate-pulse">~ $</span>
                   <input
                     type="text"
                     value={commandText}
@@ -3154,7 +3154,7 @@ export default function App() {
                     }}
                     disabled={isProcessing}
                     placeholder="Nhập lệnh TerKix hoặc mô tả app muốn tạo/tối ưu..."
-                    className="bg-transparent border-none outline-none flex-1 font-mono text-[10px] sm:text-[11.5px] md:text-[12px] font-bold text-white placeholder-gray-600 focus:ring-0 select-text leading-relaxed tracking-wide min-w-0"
+                    className="bg-transparent border-none outline-none flex-1 font-mono text-[11px] sm:text-[12.5px] md:text-[13px] font-bold text-white placeholder-gray-500 focus:ring-0 select-text leading-relaxed tracking-wide min-w-0"
                     autoFocus
                   />
                   
@@ -3169,7 +3169,7 @@ export default function App() {
                         setDetailedReasoningText("");
                       }
                     }}
-                    className={`px-2 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-sans font-bold rounded border transition flex items-center gap-1 cursor-pointer select-none pointer-events-auto ${
+                    className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10.5px] sm:text-[11.5px] font-sans font-bold rounded-lg border transition flex items-center gap-1 cursor-pointer select-none pointer-events-auto ${
                       thinkingMode 
                         ? "bg-violet-950/40 border-violet-500 text-violet-300 shadow font-extrabold animate-pulse" 
                         : "bg-[#0b1017] border-[#202730] text-gray-400 hover:text-white"
@@ -3183,7 +3183,7 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="p-1.5 px-3 sm:px-4 text-[#0D1117] font-black text-[10px] sm:text-xs font-sans rounded-lg bg-[#3FB950] hover:bg-green-400 transition flex items-center gap-1.5 cursor-pointer shrink-0 pointer-events-auto shadow-[0_0_18px_rgba(63,185,80,0.28)] disabled:opacity-50"
+                    className="p-2 px-4 sm:px-5 text-[#0D1117] font-black text-[11px] sm:text-sm font-sans rounded-xl bg-[#3FB950] hover:bg-green-400 transition flex items-center gap-1.5 cursor-pointer shrink-0 pointer-events-auto shadow-[0_0_18px_rgba(63,185,80,0.28)] disabled:opacity-50"
                   >
                     <span>run</span>
                     <Send size={10} />

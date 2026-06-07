@@ -88,6 +88,15 @@
     radial-gradient(circle at 50% 0%, rgba(63, 185, 80, 0.08), transparent 36%);
 }
 
+@keyframes terkixRainbowSweep {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /* Compact mobile shell: keep the whole TerKix cockpit visible instead of feeling browser-zoomed. */
 
 .terkix-app-shell {
@@ -105,10 +114,44 @@
 
 .terkix-input-dock {
   position: sticky;
-  bottom: 0;
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
   z-index: 20;
-  min-height: 40px;
-  padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+  min-height: 48px;
+  padding-bottom: 0.5rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.terkix-input-dock::before {
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    270deg,
+    #ff004c,
+    #ff8a00,
+    #ffee00,
+    #00ff66,
+    #00d9ff,
+    #3867ff,
+    #bc13fe,
+    #ff004c
+  );
+  background-size: 260% 100%;
+  border-radius: inherit;
+  filter: drop-shadow(0 0 10px rgba(188, 19, 254, 0.34));
+  animation: terkixRainbowSweep 2.8s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.terkix-input-dock > * {
+  position: relative;
+  z-index: 1;
 }
 
 .terkix-dashboard-overlay {
@@ -172,8 +215,9 @@
   }
 
   .terkix-input-dock {
-    min-height: 44px;
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    bottom: max(0.625rem, env(safe-area-inset-bottom));
+    min-height: 52px;
+    padding-bottom: 0.625rem;
   }
 }
 
