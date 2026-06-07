@@ -53,7 +53,7 @@ export default function ContactsManager({
     {
       resourceName: "people/c1",
       name: "Nguyễn Văn Hùng",
-      email: "hung.nguyen@rkix.dev",
+      email: "hung.nguyen@terkix.dev",
       phone: "+84 901 234 567",
       photoUrl: "",
       role: "Lead Architect",
@@ -62,7 +62,7 @@ export default function ContactsManager({
     {
       resourceName: "people/c2",
       name: "Trần Thị Mai",
-      email: "mai.tran@rkix.dev",
+      email: "mai.tran@terkix.dev",
       phone: "+84 912 345 678",
       photoUrl: "",
       role: "Designer Agent",
@@ -478,7 +478,7 @@ export default function ContactsManager({
                 className="animate-[dash_12s_linear_infinite]"
               />
 
-              {/* NODE 1: CENTRAL WORKSPACE CORE (RKix Active OS Server) */}
+              {/* NODE 1: CENTRAL WORKSPACE CORE (TerKix Active OS Server) */}
               <g 
                 className="cursor-pointer group"
                 onClick={() => setSelectedNode("core")}

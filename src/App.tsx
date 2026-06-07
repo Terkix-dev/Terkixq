@@ -46,6 +46,7 @@ import {
   MicOff
 } from "lucide-react";
 import { Project, WorkspaceFile, Agent, TerminalLine, Deployment, GitCommit } from "./types";
+import { readJsonStorage, readNumberStorage, readStringStorage, writeStorage } from "./utils/storage";
 import { PRESET_PROJECTS } from "./data/presets";
 import DashboardOverview from "./components/DashboardOverview";
 import ProjectList from "./components/ProjectList";
@@ -63,43 +64,44 @@ const DEFAULT_AGENTS: Agent[] = [
 ];
 
 const INITIAL_LINES: TerminalLine[] = [
-  { id: "init-1", type: "system", text: "RKix Terminal OS [Version 1.0.4] - Secure Dev Kernel", timestamp: new Date().toLocaleTimeString() },
+  { id: "init-1", type: "system", text: "TerKix Terminal OS [Version 1.0.4] - Secure Dev Kernel", timestamp: new Date().toLocaleTimeString() },
   { id: "init-2", type: "system", text: "Initializing isolated multi-agent software sandboxes...", timestamp: new Date().toLocaleTimeString() },
   { id: "init-3", type: "success", text: "Core kernel boot completed inside micro-container in 12ms.", timestamp: new Date().toLocaleTimeString() },
   { id: "init-4", type: "agent-info", text: "[PLANNER] Directives compiled. Ready for requirements parsing.", timestamp: new Date().toLocaleTimeString(), agent: "Planner" },
   { id: "init-5", type: "agent-info", text: "[BUILDER] Scaffolding matrices loaded. Standby state verified.", timestamp: new Date().toLocaleTimeString(), agent: "Builder" },
   { id: "init-6", type: "agent-success", text: "All 6 autonomous agents registered and synchronized.", timestamp: new Date().toLocaleTimeString(), agent: "Designer" },
-  { id: "init-7", type: "warning", text: "Type 'help' to review RKix custom terminal commands or enter a natural prompt to spawn assets.", timestamp: new Date().toLocaleTimeString() },
+  { id: "init-7", type: "warning", text: "Type 'help' to review TerKix custom terminal commands or enter a natural prompt to spawn assets.", timestamp: new Date().toLocaleTimeString() },
 ];
 
 export default function App() {
-  const rkixRootRef = useRef<HTMLDivElement>(null);
+  const terkixRootRef = useRef<HTMLDivElement>(null);
 
   // Persistence state loaders
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem("rkix_projects");
-    return saved ? JSON.parse(saved) : PRESET_PROJECTS;
-  });
+  const [projects, setProjects] = useState<Project[]>(() =>
+    readJsonStorage<Project[]>("terkix_projects", PRESET_PROJECTS, (value): value is Project[] =>
+      Array.isArray(value) && value.every((item) => typeof item?.id === "string" && Array.isArray(item?.files)),
+      ["rkix_projects"]
+    )
+  );
 
-  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
-    const saved = localStorage.getItem("rkix_active_project_id");
-    if (saved) return saved;
-    return PRESET_PROJECTS[0]?.id || "";
-  });
+  const [activeProjectId, setActiveProjectId] = useState<string>(() =>
+    readStringStorage("terkix_active_project_id", PRESET_PROJECTS[0]?.id || "", ["rkix_active_project_id"])
+  );
 
   const [currentSection, setCurrentSection] = useState<string>("terminal");
-  const [terminalLines, setTerminalLines] = useState<TerminalLine[]>(() => {
-    const saved = localStorage.getItem("rkix_terminal_lines");
-    return saved ? JSON.parse(saved) : INITIAL_LINES;
-  });
+  const [terminalLines, setTerminalLines] = useState<TerminalLine[]>(() =>
+    readJsonStorage<TerminalLine[]>("terkix_terminal_lines", INITIAL_LINES, (value): value is TerminalLine[] =>
+      Array.isArray(value) && value.every((item) => typeof item?.id === "string" && typeof item?.text === "string"),
+      ["rkix_terminal_lines"]
+    )
+  );
 
   const [agents, setAgents] = useState<Agent[]>(DEFAULT_AGENTS);
   const [commandText, setCommandText] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [totalCommandsRun, setTotalCommandsRun] = useState<number>(() => {
-    const saved = localStorage.getItem("rkix_total_commands");
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  const [totalCommandsRun, setTotalCommandsRun] = useState<number>(() =>
+    readNumberStorage("terkix_total_commands", 0, ["rkix_total_commands"])
+  );
 
   // File explorer states
   const [selectedFilePath, setSelectedFilePath] = useState<string>("");
@@ -120,7 +122,7 @@ export default function App() {
   const [isMicActive, setIsMicActive] = useState<boolean>(false);
   const [micStream, setMicStream] = useState<MediaStream | null>(null);
 
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [longPressedTriggered, setLongPressedTriggered] = useState<boolean>(false);
 
   const startLongPressTimer = () => {
@@ -240,7 +242,7 @@ export default function App() {
     {
       resourceName: "people/c1",
       name: "Nguyễn Văn Hùng",
-      email: "hung.nguyen@rkix.dev",
+      email: "hung.nguyen@terkix.dev",
       phone: "+84 901 234 567",
       role: "Lead Architect",
       isCollaborating: true
@@ -248,7 +250,7 @@ export default function App() {
     {
       resourceName: "people/c2",
       name: "Trần Thị Mai",
-      email: "mai.tran@rkix.dev",
+      email: "mai.tran@terkix.dev",
       phone: "+84 912 345 678",
       role: "Designer Agent",
       isCollaborating: true
@@ -278,7 +280,7 @@ export default function App() {
       name: "Standard Uptime",
       type: "command",
       triggerCommand: "uptime",
-      responseOutput: "[SYSTEM STATUS] RKix Terminal OS uptime: 14h 32m 11s. Core server container response delay: 2.13ms.",
+      responseOutput: "[SYSTEM STATUS] TerKix Terminal OS uptime: 14h 32m 11s. Core server container response delay: 2.13ms.",
       isEnabled: true
     }
   ]);
@@ -400,25 +402,39 @@ export default function App() {
     }, 1200);
   };
 
-  const activeProject = projects.find(p => p.id === activeProjectId) || projects[0];
+  const activeProject = projects.find(p => p.id === activeProjectId) || projects[0] || PRESET_PROJECTS[0];
 
   useEffect(() => {
-    localStorage.setItem("rkix_projects", JSON.stringify(projects));
+    if (projects.length === 0) {
+      setProjects(PRESET_PROJECTS);
+      setActiveProjectId(PRESET_PROJECTS[0]?.id || "");
+      return;
+    }
+
+    if (!projects.some((project) => project.id === activeProjectId)) {
+      setActiveProjectId(projects[0].id);
+    }
+  }, [activeProjectId, projects]);
+
+  useEffect(() => {
+    writeStorage("terkix_projects", projects);
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem("rkix_active_project_id", activeProjectId);
+    writeStorage("terkix_active_project_id", activeProjectId);
     if (activeProject && activeProject.files.length > 0) {
-      setSelectedFilePath(activeProject.files[0].path);
+      setSelectedFilePath((current) =>
+        activeProject.files.some((file) => file.path === current) ? current : activeProject.files[0].path
+      );
     }
   }, [activeProjectId, activeProject]);
 
   useEffect(() => {
-    localStorage.setItem("rkix_terminal_lines", JSON.stringify(terminalLines));
+    writeStorage("terkix_terminal_lines", terminalLines);
   }, [terminalLines]);
 
   useEffect(() => {
-    localStorage.setItem("rkix_total_commands", totalCommandsRun.toString());
+    writeStorage("terkix_total_commands", totalCommandsRun.toString());
   }, [totalCommandsRun]);
 
   // Update Real-time Telemetry Metrics periodically to drive live D3 visualizations
@@ -611,7 +627,7 @@ export default function App() {
         {
           id: respId,
           type: "system",
-          text: `\nRKix Command Line Reference Guide:\n` +
+          text: `\nTerKix Command Line Reference Guide:\n` +
                 `---------------------------------------------------------------------------------\n` +
                 `$ clear                   - Flush clean the active console log stream.\n` +
                 `$ help                    - Display this system reference manual.\n` +
@@ -683,7 +699,7 @@ export default function App() {
       const newCommit: GitCommit = {
         hash: Math.random().toString(16).slice(2, 9),
         message: commitMsg.replace(/['"]/g, ""),
-        author: "nvht2505@gmail.com <RKix Console>",
+        author: "nvht2505@gmail.com <TerKix Console>",
         date: new Date().toISOString()
       };
 
@@ -1083,13 +1099,13 @@ export default function App() {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RKix Software Output</title>
+  <title>TerKix Software Output</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#0D1117] text-[#E6EDF3] p-10 font-sans">
   <div class="max-w-2xl mx-auto border border-[#30363D] bg-[#161B22] p-8 rounded-xl shadow-2xl">
     <h1 class="text-2xl font-bold text-white mb-2">Active Sandbox Terminal Live</h1>
-    <p class="text-xs text-[#58A6FF] font-mono mb-6">$ rkix command execute --success</p>
+    <p class="text-xs text-[#58A6FF] font-mono mb-6">$ terkix command execute --success</p>
     
     <div class="p-4 bg-black/40 border border-[#30363D] rounded-lg mb-6">
       <p class="text-xs text-gray-400">Directive:</p>
@@ -1098,7 +1114,7 @@ export default function App() {
     <ul class="space-y-2 text-xs text-gray-400">
       <li>&bull; File "workspace/project/index.html" was updated with fresh styling.</li>
       <li>&bull; Workspace file system regenerated with standard assets.</li>
-      <li>&bull; Compiled successfully under RKix development environments.</li>
+      <li>&bull; Compiled successfully under TerKix development environments.</li>
     </ul>
   </div>
 </body>
@@ -1156,7 +1172,7 @@ export default function App() {
     const newF: WorkspaceFile = {
       path: pathInput,
       name,
-      content: `// New file ${name} - RKix Terminal OS`,
+      content: `// New file ${name} - TerKix Terminal OS`,
       language: pathInput.endsWith(".html") ? "html" : pathInput.endsWith(".css") ? "css" : "tsx"
     };
 
@@ -1211,7 +1227,7 @@ export default function App() {
         {
           hash: Math.random().toString(16).slice(2, 9),
           message: "Boilerplate workspace compiled successfully",
-          author: "RKix Planner Agent",
+          author: "TerKix Planner Agent",
           date: new Date().toISOString()
         }
       ],
@@ -1273,8 +1289,8 @@ export default function App() {
 
   return (
     <div 
-      id="rkix-root" 
-      ref={rkixRootRef}
+      id="terkix-root" 
+      ref={terkixRootRef}
       className="w-all-screen w-screen h-screen overflow-hidden max-h-screen relative flex bg-[#030508] text-[#E6EDF3] font-mono select-none"
       style={{ touchAction: "none" }}
     >
@@ -1296,19 +1312,25 @@ export default function App() {
           >
             {/* Overlay Header Banner */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#30363D] pb-5 mb-6 gap-4 shrink-0">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <span className="h-2 w-2 rounded-full bg-[#3FB950] animate-pulse"></span>
-                  <p className="text-[9px] tracking-widest font-mono uppercase bg-[#3FB950]/10 text-[#3FB950] px-2.5 py-0.5 rounded font-extrabold border border-[#3FB950]/20">
-                    RKix Automated Sandbox Core
+              <div className="flex items-center gap-4">
+                <img src="/terkix-logo.svg" alt="TerKix logo" className="h-14 w-14 rounded-2xl border border-[#30363D] bg-black/50 shadow-[0_0_30px_rgba(88,166,255,0.18)]" />
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="h-2 w-2 rounded-full bg-[#3FB950] animate-pulse"></span>
+                    <p className="text-[9px] tracking-widest font-mono uppercase bg-[#3FB950]/10 text-[#3FB950] px-2.5 py-0.5 rounded font-extrabold border border-[#3FB950]/20">
+                      TerKix Termux Sandbox Core
+                    </p>
+                    <span className="text-[9px] tracking-widest font-mono uppercase bg-[#58A6FF]/10 text-[#58A6FF] px-2.5 py-0.5 rounded font-extrabold border border-[#58A6FF]/20">
+                      Prompt → Build → Preview → Deploy
+                    </span>
+                  </div>
+                  <h1 className="text-xl md:text-2xl font-black text-white mt-1.5 flex items-center gap-2">
+                    <Sliders className="text-[#3FB950]" size={21} /> TERKIX APP COCKPIT
+                  </h1>
+                  <p className="text-xs text-[#8B949E] mt-0.5 font-medium font-sans">
+                    Termux-style shell UI &bull; Active Sandbox Layer Matrix &bull; Realtime Sync Verified
                   </p>
                 </div>
-                <h1 className="text-xl md:text-2xl font-black text-white mt-1.5 flex items-center gap-2">
-                  <Sliders className="text-[#3FB950]" size={21} /> RKIX U-SYSTEM COCKPIT
-                </h1>
-                <p className="text-xs text-[#8B949E] mt-0.5 font-medium font-sans">
-                  Active Sandbox Layer Matrix &bull; Realtime Sync Verified
-                </p>
               </div>
 
               {/* Close Action - Highly visible Quay lại/X action */}
@@ -1635,7 +1657,7 @@ export default function App() {
                               {
                                 hash: Math.random().toString(16).slice(2, 9),
                                 message: msg,
-                                author: "nvht2505@gmail.com <RKix Console>",
+                                author: "nvht2505@gmail.com <TerKix Console>",
                                 date: new Date().toISOString()
                               },
                               ...p.commitHistory
@@ -1938,7 +1960,7 @@ export default function App() {
                       <div className="p-5 bg-[#161B22] rounded-xl border border-[#30363D]">
                         <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2 font-sans">
                           <Sliders className="text-[#3FB950]" size={20} />
-                          RKix AI Agent Architectures
+                          TerKix AI Agent Architectures
                         </h2>
                         <p className="text-xs text-[#8B949E] font-sans">
                           Configure and monitor autonomous roles inside your compiler sandbox pipeline.
@@ -2155,11 +2177,9 @@ export default function App() {
 
       {/* Legacy sidebars rendered only if showLegacySidebar is checked */}
       {showLegacySidebar && (
-        <nav id="rkix-nav-rail" className="w-16 min-h-screen flex flex-col items-center py-6 border-r border-[#30363D] bg-[#161B22] justify-between z-10 shrink-0 select-text">
+        <nav id="terkix-nav-rail" className="w-16 min-h-screen flex flex-col items-center py-6 border-r border-[#30363D] bg-[#161B22] justify-between z-10 shrink-0 select-text">
           <div className="flex flex-col items-center gap-8 w-full">
-            <div className="w-10 h-10 bg-[#58A6FF] rounded flex items-center justify-center text-[#0D1117] font-black text-xl mb-4 transition transform hover:scale-105" title="RKix Terminal OS">
-              RK
-            </div>
+            <img src="/terkix-logo.svg" alt="TerKix logo" className="w-11 h-11 rounded-xl border border-[#30363D] bg-black transition transform hover:scale-105 mb-4 shadow-[0_0_18px_rgba(63,185,80,0.25)]" title="TerKix Terminal OS" />
             
             <div className="flex flex-col gap-6 w-full px-2" id="nav-rail-tabs">
               <button
@@ -2258,7 +2278,7 @@ export default function App() {
       )}
 
       {showLegacySidebar && (
-        <aside id="rkix-sidebar" className="w-[230px] border-r border-[#30363D] bg-[#161B22] flex flex-col justify-between shrink-0 hidden md:flex select-text">
+        <aside id="terkix-sidebar" className="w-[230px] border-r border-[#30363D] bg-[#161B22] flex flex-col justify-between shrink-0 hidden md:flex select-text">
           <div className="flex flex-col border-b border-[#30363D]/60">
             <div className="p-4 font-extrabold text-[10px] uppercase tracking-widest text-[#8B949E] opacity-50 font-mono">
               Active Workspace
@@ -2350,7 +2370,7 @@ export default function App() {
           <div className="p-4 border-t border-[#30363D]/60 bg-[#0D1117] flex justify-between items-center text-[10px] font-mono text-[#8B949E]">
             <div className="flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-[#58A6FF]"></span>
-              <span>RKix OS Shell</span>
+              <span>TerKix OS Shell</span>
             </div>
             <span>v1.0.4</span>
           </div>
@@ -2554,6 +2574,8 @@ export default function App() {
           <div className="flex-1 flex justify-between items-center pl-3">
             {/* Left: Session and Active Node Status */}
             <div className="flex items-center gap-2">
+              <img src="/terkix-logo.svg" alt="TerKix" className="h-6 w-6 rounded-md border border-[#30363D] bg-black/60" />
+              <span className="hidden md:inline text-[10px] font-black tracking-widest text-white uppercase">TerKix</span>
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3FB950] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3FB950]"></span>
@@ -2590,6 +2612,19 @@ export default function App() {
           
           {/* TERMINAL TAB VIEW - ALWAYS ACTIVE BACKGROUND TERMUX */}
           <div className="flex-1 flex flex-col min-h-0" id="terminal-section-layout">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 border-b border-[#21262d] bg-[#05070b] text-[10px] font-mono">
+                {[
+                  { label: "01 COMMAND", text: "Gõ ý tưởng Termux/terminal", color: "text-[#3FB950] border-[#3FB950]/25 bg-[#3FB950]/8" },
+                  { label: "02 AGENTS", text: "Planner + Builder xử lý", color: "text-[#58A6FF] border-[#58A6FF]/25 bg-[#58A6FF]/8" },
+                  { label: "03 WORKSPACE", text: "Tạo file, preview, chỉnh sửa", color: "text-[#F0883E] border-[#F0883E]/25 bg-[#F0883E]/8" },
+                  { label: "04 DEPLOY", text: "Đóng gói & chia sẻ link", color: "text-[#BC8CFF] border-[#BC8CFF]/25 bg-[#BC8CFF]/8" },
+                ].map((step) => (
+                  <div key={step.label} className={`rounded-xl border px-3 py-2 ${step.color}`}>
+                    <div className="font-black tracking-widest">{step.label}</div>
+                    <div className="mt-1 text-[#8B949E] normal-case tracking-normal">{step.text}</div>
+                  </div>
+                ))}
+              </div>
               
               {/* Actual Terminal Window */}
               <div className="flex-1 bg-black flex flex-col relative">
@@ -2634,7 +2669,7 @@ export default function App() {
                     {terminalLines.map((line) => {
                       if (line.type === "input") {
                         const targetPrompt = 
-                          themeColor === "green" ? "developer@rkix:~$ " : 
+                          themeColor === "green" ? "developer@terkix:~$ " : 
                           themeColor === "amber" ? "oracle@amber:~$ " : 
                           themeColor === "cyan" ? "sys@cyan:~$ " : 
                           "matrix@violet:~$ ";

@@ -1,6 +1,10 @@
 {
-  "name": "RKix Terminal OS",
-  "description": "AI-native terminal-based software development environment with autonomous planner, builder, designer, debugger, and deployer agents.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "TerKix Terminal OS",
+  "description": "AI-native terminal-based software development environment with autonomous planner, builder, designer, debugger, deployer, plugin, contact, and telemetry agents.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

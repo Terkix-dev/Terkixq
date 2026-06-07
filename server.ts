@@ -3,20 +3,49 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import dotenv from "dotenv";
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
-import dotenv from "dotenv";
+import { createServer as createViteServer } from "vite";
 
 dotenv.config();
 
+interface WorkspaceFilePayload {
+  path: string;
+  name?: string;
+  content: string;
+  language?: string;
+}
+
+interface ProjectContextPayload {
+  name?: string;
+  description?: string;
+}
+
+interface GeminiCommandRequest {
+  command?: string;
+  currentFiles?: WorkspaceFilePayload[];
+  projectContext?: ProjectContextPayload;
+  activeBranch?: string;
+  thinkingMode?: boolean;
+}
+
 const app = express();
-const PORT = 3000;
+const PORT = Number.parseInt(process.env.PORT || "3000", 10);
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 app.use(express.json({ limit: "50mb" }));
 
-// Lazy initializer for Google GenAI client
+app.get("/api/health", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "TerKix Terminal OS",
+    geminiModel: GEMINI_MODEL,
+  });
+});
+
+// Lazy initializer for Google GenAI client.
 let aiClient: GoogleGenAI | null = null;
 function getGenAI(): GoogleGenAI {
   if (!aiClient) {
@@ -24,6 +53,7 @@ function getGenAI(): GoogleGenAI {
     if (!key || key === "MY_GEMINI_API_KEY") {
       throw new Error("GEMINI_API_KEY environment variable is not configured. Please add it via the Secrets panel in AI Studio settings.");
     }
+
     aiClient = new GoogleGenAI({
       apiKey: key,
       httpOptions: {
@@ -33,26 +63,49 @@ function getGenAI(): GoogleGenAI {
       },
     });
   }
+
   return aiClient;
 }
 
-// REST route for Terminal command processing with Gemini Agent orchestrating
+function normalizeFiles(files: unknown): WorkspaceFilePayload[] {
+  if (!Array.isArray(files)) {
+    return [];
+  }
+
+  return files.filter((file): file is WorkspaceFilePayload =>
+    typeof file?.path === "string" && typeof file?.content === "string"
+  );
+}
+
+function parseGeminiJson(text: string): unknown {
+  const trimmed = text.trim();
+  const unfenced = trimmed
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  return JSON.parse(unfenced);
+}
+
+// REST route for Terminal command processing with Gemini Agent orchestrating.
 app.post("/api/gemini/command", async (req, res) => {
   try {
-    const { command, currentFiles, projectContext, activeBranch, outputMimeType, thinkingMode } = req.body;
-    
-    if (!command) {
+    const { command, currentFiles, projectContext, activeBranch, thinkingMode } = req.body as GeminiCommandRequest;
+    const cleanCommand = command?.trim();
+
+    if (!cleanCommand) {
       return res.status(400).json({ error: "Command is required" });
     }
 
     const ai = getGenAI();
+    const normalizedFiles = normalizeFiles(currentFiles);
 
-    // Construct the context representing the current virtual project directory structure and code bases
-    const filesContext = currentFiles && currentFiles.length > 0 
-      ? currentFiles.map((f: any) => `\n--- File: ${f.path} ---\nLanguage: ${f.language}\nContent:\n${f.content}`).join("\n\n")
+    // Construct the context representing the current virtual project directory structure and code bases.
+    const filesContext = normalizedFiles.length > 0
+      ? normalizedFiles.map((file) => `\n--- File: ${file.path} ---\nLanguage: ${file.language || "text"}\nContent:\n${file.content}`).join("\n\n")
       : "[The workspace is currently empty. No files exist yet.]";
 
-    const systemInstruction = `You are the core RKix Terminal OS agent, directing a multi-agent software development terminal.
+    const systemInstruction = `You are the core TerKix Terminal OS agent, directing a multi-agent software development terminal.
 You receive:
 1. A natural language command or terminal prompt from the developer (e.g. "build an online resume website", "create navbar.tsx", "edit homepage.tsx", "deploy production").
 2. The current list of virtual files inside the active workspace directory.
@@ -68,7 +121,7 @@ Your goal is to parse this input and simulate the response of a highly professio
 - Deploy: Simulates build output, artifact bundling, and cloud service links.
 - Research: Explains documentation, searches appropriate modules.
 
-You MUST always return a JSON object sticking strictly to the response schema. 
+You MUST always return a JSON object sticking strictly to the response schema.
 Provide a realistic developer workflow inside "agentWorkflow" with detailed logs of what different agents did.
 Provide "workspaceChanges" containing:
 - filesToCreate: Array of new files. ALWAYS include the fully fleshed out code content (e.g., beautiful Tailwind HTML layouts, React components or style configurations). Avoid placeholders! Provide complete source code!
@@ -85,7 +138,7 @@ IMPORTANT: Act as a real developer-centric Operating System. Be extremely litera
 
     const userPrompt = `
 *** ACTIVE PROJECT CONTEXT ***
-Project Name: ${projectContext?.name || "RKix Sandbox"}
+Project Name: ${projectContext?.name || "TerKix Sandbox"}
 Description: ${projectContext?.description || "A clean development workspace"}
 Active Branch: ${activeBranch || "main"}
 THINKING_MODE_ACTIVE: ${thinkingMode ? "TRUE" : "FALSE"}
@@ -94,13 +147,13 @@ THINKING_MODE_ACTIVE: ${thinkingMode ? "TRUE" : "FALSE"}
 ${filesContext}
 
 *** DEVELOPER INPUT COMMAND ***
-${command}
+${cleanCommand}
 
 Generate the agent workflow, workspace updates, detailed reasoning (if thinking mode is true), and terminal outputs. Make sure to generate detailed, fully-written file contents without leaving any comment-based placeholders (e.g., do not write "// code goes here", write the real complete code).
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: GEMINI_MODEL,
       contents: userPrompt,
       config: {
         systemInstruction,
@@ -111,16 +164,16 @@ Generate the agent workflow, workspace updates, detailed reasoning (if thinking 
             commandParsed: {
               type: Type.OBJECT,
               properties: {
-                intent: { 
+                intent: {
                   type: Type.STRING,
-                  description: "Categorize input intent: create_project, create_file, edit_file, delete_file, deploy, git_command, general_query"
+                  description: "Categorize input intent: create_project, create_file, edit_file, delete_file, deploy, git_command, general_query",
                 },
-                target: { 
+                target: {
                   type: Type.STRING,
-                  description: "The specific filename, branch name, or folder path targeted, if applicable."
-                }
+                  description: "The specific filename, branch name, or folder path targeted, if applicable.",
+                },
               },
-              required: ["intent", "target"]
+              required: ["intent", "target"],
             },
             agentWorkflow: {
               type: Type.ARRAY,
@@ -130,10 +183,10 @@ Generate the agent workflow, workspace updates, detailed reasoning (if thinking 
                 properties: {
                   agent: { type: Type.STRING, description: "Role name, e.g. Planner, Builder, Designer, Debugger, Deploy, Research" },
                   action: { type: Type.STRING, description: "Action text e.g. Scaffolding structure, Refining CSS layout" },
-                  log: { type: Type.STRING, description: "Log details representing thoughts or actual work files processed" }
+                  log: { type: Type.STRING, description: "Log details representing thoughts or actual work files processed" },
                 },
-                required: ["agent", "action", "log"]
-              }
+                required: ["agent", "action", "log"],
+              },
             },
             workspaceChanges: {
               type: Type.OBJECT,
@@ -146,10 +199,10 @@ Generate the agent workflow, workspace updates, detailed reasoning (if thinking 
                       path: { type: Type.STRING, description: "The full path starting with 'workspace/project/'" },
                       name: { type: Type.STRING },
                       content: { type: Type.STRING, description: "The COMPLETE, functional file code" },
-                      language: { type: Type.STRING, description: "e.g. html, css, tsx, js, json, md" }
+                      language: { type: Type.STRING, description: "e.g. html, css, tsx, js, json, md" },
                     },
-                    required: ["path", "name", "content", "language"]
-                  }
+                    required: ["path", "name", "content", "language"],
+                  },
                 },
                 filesToEdit: {
                   type: Type.ARRAY,
@@ -157,34 +210,34 @@ Generate the agent workflow, workspace updates, detailed reasoning (if thinking 
                     type: Type.OBJECT,
                     properties: {
                       path: { type: Type.STRING, description: "Path of existing file to update" },
-                      content: { type: Type.STRING, description: "The updated FULL contents of the file" }
+                      content: { type: Type.STRING, description: "The updated FULL contents of the file" },
                     },
-                    required: ["path", "content"]
-                  }
+                    required: ["path", "content"],
+                  },
                 },
                 filesToDelete: {
                   type: Type.ARRAY,
-                  items: { type: Type.STRING }
-                }
+                  items: { type: Type.STRING },
+                },
               },
-              required: ["filesToCreate", "filesToEdit", "filesToDelete"]
+              required: ["filesToCreate", "filesToEdit", "filesToDelete"],
             },
-            terminalOutput: { 
-              type: Type.STRING, 
-              description: "Simulated text to append to the system command prompt, with color tags or standard console structure." 
+            terminalOutput: {
+              type: Type.STRING,
+              description: "Simulated text to append to the system command prompt, with color tags or standard console structure.",
             },
-            explanation: { 
-              type: Type.STRING, 
-              description: "A summary explaining the actions taken in a polite, professional developer voice." 
+            explanation: {
+              type: Type.STRING,
+              description: "A summary explaining the actions taken in a polite, professional developer voice.",
             },
             detailedReasoning: {
               type: Type.STRING,
-              description: "Comprehensive multi-agent thinking, architectural debate, and planning process when thinkingMode is active (in Vietnamese or English matching user language)."
-            }
+              description: "Comprehensive multi-agent thinking, architectural debate, and planning process when thinkingMode is active (in Vietnamese or English matching user language).",
+            },
           },
-          required: ["commandParsed", "agentWorkflow", "workspaceChanges", "terminalOutput", "explanation"]
-        }
-      }
+          required: ["commandParsed", "agentWorkflow", "workspaceChanges", "terminalOutput", "explanation"],
+        },
+      },
     });
 
     const resultText = response.text;
@@ -192,18 +245,15 @@ Generate the agent workflow, workspace updates, detailed reasoning (if thinking 
       throw new Error("Empty response from Gemini API");
     }
 
-    const commandResult = JSON.parse(resultText.trim());
-    return res.json(commandResult);
-
-  } catch (error: any) {
+    return res.json(parseGeminiJson(resultText));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "An error occurred while communicating with the AI Core.";
     console.error("Gemini Command processing failed:", error);
-    return res.status(500).json({ 
-      error: error.message || "An error occurred while communicating with the AI Core."
-    });
+    return res.status(500).json({ error: message });
   }
 });
 
-// Configure Vite middleware or Static files hosting
+// Configure Vite middleware or static file hosting.
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -214,13 +264,13 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`RKix Terminal OS server booted successfully on port ${PORT}`);
+    console.log(`TerKix Terminal OS server booted successfully on port ${PORT} using ${GEMINI_MODEL}`);
   });
 }
 

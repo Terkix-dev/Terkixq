@@ -34,7 +34,7 @@ export const PRESET_PROJECTS: Project[] = [
       {
         hash: "1d0f5e3",
         message: "Initial repository commit and boilerplate boilerplate configurations",
-        author: "RKix Planner Agent",
+        author: "TerKix Planner Agent",
         date: "2026-06-01T10:05:00Z"
       }
     ],
@@ -259,7 +259,7 @@ export default function App() {
         <h1 class="text-2xl font-black uppercase tracking-wider">SYSTEM: DEV-PORTFOLIO</h1>
         <span class="text-xs bg-[#4AF626]/10 px-2 py-0.5 rounded border border-[#4AF626]/30">LIVE RUNNING</span>
       </div>
-      <p class="text-xs text-green-500/60 mt-1">Compiled in 14ms via RKix Terminal OS</p>
+      <p class="text-xs text-green-500/60 mt-1">Compiled in 14ms via TerKix Terminal OS</p>
     </header>
 
     <!-- Bio Section -->
@@ -283,7 +283,7 @@ export default function App() {
         </div>
         <div class="p-4 border border-[#4AF626]/20 rounded bg-[#0A0D0F]">
           <div class="flex justify-between text-xs font-bold text-white mb-1">
-            <span>[02] RKix KERNEL-FLOW</span>
+            <span>[02] TerKix KERNEL-FLOW</span>
             <span>2025</span>
           </div>
           <p class="text-xs text-green-500/70">A beautiful custom terminal emulation shell rendering high-speed local developer sandboxes.</p>

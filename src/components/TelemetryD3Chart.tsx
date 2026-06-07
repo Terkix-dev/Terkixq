@@ -108,7 +108,7 @@ export default function TelemetryD3Chart({ history, themeColor }: TelemetryD3Cha
       .y1((d) => yScale(d.cpu))
       .curve(d3.curveMonotoneX);
 
-    // Color mapper matched to RKix terminal phosphor matrices
+    // Color mapper matched to TerKix terminal phosphor matrices
     const colors = {
       green: { stroke: "#3FB950", start: "rgba(63, 185, 80, 0.28)", end: "rgba(63, 185, 80, 0)" },
       amber: { stroke: "#D29922", start: "rgba(210, 153, 34, 0.28)", end: "rgba(210, 153, 34, 0)" },

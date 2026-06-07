@@ -74,16 +74,24 @@ export default function DashboardOverview({
   return (
     <div className="space-y-6" id="dashboard-container">
       {/* OS Banner */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-[#161B22] to-[#0D1117] border border-[#30363D] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-2.5 w-2.5 bg-[#3FB950] rounded-full animate-ping"></span>
-            <span className="text-xs font-mono text-[#3FB950] font-semibold tracking-wider uppercase">RKIX CORE KERNEL ACTIVE</span>
+      <div className="p-6 rounded-2xl bg-[radial-gradient(circle_at_top_left,rgba(63,185,80,0.18),transparent_34%),linear-gradient(135deg,#161B22,#070B10)] border border-[#30363D] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className="flex items-center gap-4">
+          <img src="/terkix-logo.svg" alt="TerKix logo" className="h-16 w-16 rounded-2xl border border-[#30363D] bg-black/40 shadow-[0_0_28px_rgba(63,185,80,0.2)]" />
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-2.5 w-2.5 bg-[#3FB950] rounded-full animate-ping"></span>
+              <span className="text-xs font-mono text-[#3FB950] font-semibold tracking-wider uppercase">TERKIX TERMUX CORE ACTIVE</span>
+            </div>
+            <h2 className="text-2xl font-black text-white tracking-tight">TerKix Terminal OS</h2>
+            <p className="text-xs text-[#8B949E] mt-1">
+              Active Project: <span className="text-[#58A6FF] font-semibold font-mono">{project.name}</span> &bull; Branch: <span className="text-[#D29922] font-semibold font-mono">{project.activeBranch}</span>
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-mono uppercase tracking-wider">
+              <span className="rounded-full border border-[#3FB950]/30 bg-[#3FB950]/10 px-2.5 py-1 text-[#3FB950]">Prompt → Agent</span>
+              <span className="rounded-full border border-[#58A6FF]/30 bg-[#58A6FF]/10 px-2.5 py-1 text-[#58A6FF]">Files → Preview</span>
+              <span className="rounded-full border border-[#BC8CFF]/30 bg-[#BC8CFF]/10 px-2.5 py-1 text-[#BC8CFF]">Deploy → Share</span>
+            </div>
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">RKix Terminal OS</h2>
-          <p className="text-xs text-[#8B949E] mt-1">
-            Active Project: <span class="text-[#58A6FF] font-semibold font-mono">{project.name}</span> &bull; Branch: <span class="text-[#D29922] font-semibold font-mono">{project.activeBranch}</span>
-          </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-mono bg-[#0D1117]/80 p-3 rounded-lg border border-[#30363D]">
           <div className="text-[#8B949E]">
@@ -162,7 +170,7 @@ export default function DashboardOverview({
               <h3 className="font-bold text-white text-sm">Automated Agent Presets</h3>
             </div>
             <p className="text-xs text-[#8B949E] mb-4">
-              RKix OS is optimized for prompt-first workflows. Click any prompt below to pipeline it directly into our intelligent Agent Terminal environment:
+              TerKix OS is optimized for prompt-first workflows. Click any prompt below to pipeline it directly into our intelligent Agent Terminal environment:
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3" id="dashboard-preset-commands">
               {presets.map((preset, index) => (

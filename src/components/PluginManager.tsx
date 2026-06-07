@@ -98,7 +98,7 @@ export default function PluginManager({
   };
 
   const handleTestCommand = (cmd: string) => {
-    alert(`[MÔ PHỎNG PHẢN HỒI KERNEL]\n\nChạy thử: rkix > ${cmd}\nTrạng thái: OK\nKết quả xử lý cục bộ được gửi trả thành công về Terminal UI.`);
+    alert(`[MÔ PHỎNG PHẢN HỒI KERNEL]\n\nChạy thử: terkix > ${cmd}\nTrạng thái: OK\nKết quả xử lý cục bộ được gửi trả thành công về Terminal UI.`);
   };
 
   const commandPlugins = plugins.filter(p => p.type === "command");
@@ -115,7 +115,7 @@ export default function PluginManager({
             Premium SDK Plugin Hub &amp; Kernel Extension Broker
           </h2>
           <p className="text-xs text-[#8B949E] mt-0.5">
-            Mở rộng tệp lệnh rkix terminal, cài đặt AI Specialists và quản lý cổng kết nối luồng công việc.
+            Mở rộng tệp lệnh terkix terminal, cài đặt AI Specialists và quản lý cổng kết nối luồng công việc.
           </p>
         </div>
         
@@ -322,7 +322,7 @@ export default function PluginManager({
                   </h3>
                   <span className="text-[10px] text-gray-500 leading-none">
                     {selectedNode === "kernel" && "Kernel Core Registry"}
-                    {selectedNode === "commands" && "Mở rộng danh bạ dòng lệnh rkix >"}
+                    {selectedNode === "commands" && "Mở rộng danh bạ dòng lệnh terkix >"}
                     {selectedNode === "agents" && "Agents bổ sung ma trận thực thi AI"}
                     {selectedNode === "compile" && "Lắp ráp thêm plugin mới cực nhanh"}
                     {selectedNode === "docs" && "Hướng dẫn đặc trị dành cho nhà phát triển"}
@@ -399,7 +399,7 @@ export default function PluginManager({
                           </div>
                           <div className="overflow-hidden">
                             <h4 className="text-white text-[11px] font-bold font-mono leading-tight truncate">{plugin.name}</h4>
-                            <p className="text-[10px] text-gray-400 font-mono mt-0.5">&gt; rkix {plugin.triggerCommand}</p>
+                            <p className="text-[10px] text-gray-400 font-mono mt-0.5">&gt; terkix {plugin.triggerCommand}</p>
                           </div>
                         </div>
 
@@ -618,7 +618,7 @@ export default function PluginManager({
                 
                 <span className="font-bold text-white block font-mono pt-1">2. Thử Nghiệm Gõ Lệnh Thực Tế:</span>
                 <p>
-                  Quay lại tab <b>"Terminal"</b>, nhập lệnh rkix ứng với từ khóa (ví dụ: <code className="text-[#58A6FF] font-bold">uptime</code>), kết quả phản hồi sẽ hiển thị tức thì trên luồng console.
+                  Quay lại tab <b>"Terminal"</b>, nhập lệnh terkix ứng với từ khóa (ví dụ: <code className="text-[#58A6FF] font-bold">uptime</code>), kết quả phản hồi sẽ hiển thị tức thì trên luồng console.
                 </p>
               </div>
             )}
