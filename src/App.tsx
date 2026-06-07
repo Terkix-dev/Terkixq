@@ -73,6 +73,41 @@ const INITIAL_LINES: TerminalLine[] = [
   { id: "init-7", type: "warning", text: "Type 'help' to review TerKix custom terminal commands or enter a natural prompt to spawn assets.", timestamp: new Date().toLocaleTimeString() },
 ];
 
+const TERKIX_FLOW_STEPS = [
+  {
+    label: "01 COMMAND",
+    text: "Gõ ý tưởng Termux/terminal",
+    detail: "Prompt tiếng Việt hoặc shell command",
+    color: "text-[#3FB950] border-[#3FB950]/25 bg-[#3FB950]/8",
+  },
+  {
+    label: "02 AGENTS",
+    text: "Planner + Builder xử lý",
+    detail: "Tự động chia việc cho agent stack",
+    color: "text-[#58A6FF] border-[#58A6FF]/25 bg-[#58A6FF]/8",
+  },
+  {
+    label: "03 WORKSPACE",
+    text: "Tạo file, preview, chỉnh sửa",
+    detail: "Duyệt project và xem live output",
+    color: "text-[#F0883E] border-[#F0883E]/25 bg-[#F0883E]/8",
+  },
+  {
+    label: "04 DEPLOY",
+    text: "Đóng gói & chia sẻ link",
+    detail: "Mô phỏng release production",
+    color: "text-[#BC8CFF] border-[#BC8CFF]/25 bg-[#BC8CFF]/8",
+  },
+];
+
+const TERKIX_QUICK_ACTIONS = [
+  { label: "Tạo app Termux", command: "create a polished Termux-style mobile developer dashboard for TerKix" },
+  { label: "Tối ưu UI", command: "optimize the current app UI for mobile, dark terminal contrast, and clearer command flow" },
+  { label: "Sinh landing page", command: "build a premium TerKix landing page with hero, features, pricing, and deploy CTA" },
+  { label: "Debug toàn bộ", command: "scan all workspace files, fix UI bugs, and summarize quality issues" },
+];
+
+
 export default function App() {
   const terkixRootRef = useRef<HTMLDivElement>(null);
 
@@ -1286,12 +1321,15 @@ export default function App() {
 
   // Active file HTML output extraction for iframe srcDoc
   const indexHtmlCode = activeProject.files.find(f => f.name === "index.html" || f.path.endsWith("index.html"))?.content || "";
+  const latestTelemetry = telemetryHistory[telemetryHistory.length - 1] || { cpu: 2.13, ping: 1.94 };
+  const liveDeploymentsCount = activeProject.deployments.filter((deployment) => deployment.status === "live").length;
+  const activeAgentCount = agents.filter((agent) => agent.status === "running" || agent.status === "completed").length;
 
   return (
     <div 
       id="terkix-root" 
       ref={terkixRootRef}
-      className="w-all-screen w-screen h-screen overflow-hidden max-h-screen relative flex bg-[#030508] text-[#E6EDF3] font-mono select-none"
+      className="terkix-grid-bg w-all-screen w-screen h-screen overflow-hidden max-h-screen relative flex bg-[#030508] text-[#E6EDF3] font-mono select-none"
       style={{ touchAction: "none" }}
     >
       {/* Absolute CRT monitor phosphor raster grid overlay */}
@@ -2612,22 +2650,66 @@ export default function App() {
           
           {/* TERMINAL TAB VIEW - ALWAYS ACTIVE BACKGROUND TERMUX */}
           <div className="flex-1 flex flex-col min-h-0" id="terminal-section-layout">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 border-b border-[#21262d] bg-[#05070b] text-[10px] font-mono">
-                {[
-                  { label: "01 COMMAND", text: "Gõ ý tưởng Termux/terminal", color: "text-[#3FB950] border-[#3FB950]/25 bg-[#3FB950]/8" },
-                  { label: "02 AGENTS", text: "Planner + Builder xử lý", color: "text-[#58A6FF] border-[#58A6FF]/25 bg-[#58A6FF]/8" },
-                  { label: "03 WORKSPACE", text: "Tạo file, preview, chỉnh sửa", color: "text-[#F0883E] border-[#F0883E]/25 bg-[#F0883E]/8" },
-                  { label: "04 DEPLOY", text: "Đóng gói & chia sẻ link", color: "text-[#BC8CFF] border-[#BC8CFF]/25 bg-[#BC8CFF]/8" },
-                ].map((step) => (
-                  <div key={step.label} className={`rounded-xl border px-3 py-2 ${step.color}`}>
-                    <div className="font-black tracking-widest">{step.label}</div>
-                    <div className="mt-1 text-[#8B949E] normal-case tracking-normal">{step.text}</div>
+              <section className="terkix-command-deck border-b border-[#21262d] bg-[#05070b]/95 px-3 py-3 font-mono shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
+                <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-[1.4fr_1fr]">
+                  <div className="rounded-2xl border border-[#30363D] bg-[linear-gradient(135deg,rgba(13,17,23,0.96),rgba(3,5,8,0.94))] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                    <div className="flex items-start gap-3">
+                      <img src="/terkix-logo.svg" alt="TerKix command deck" className="h-12 w-12 rounded-xl border border-[#30363D] bg-black/60 shadow-[0_0_24px_rgba(63,185,80,0.18)]" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-[0.18em]">
+                          <span className="rounded-full border border-[#3FB950]/25 bg-[#3FB950]/10 px-2 py-0.5 font-black text-[#3FB950]">TerKix Flow</span>
+                          <span className="rounded-full border border-[#58A6FF]/25 bg-[#58A6FF]/10 px-2 py-0.5 font-bold text-[#58A6FF]">Mobile Termux UX</span>
+                        </div>
+                        <h2 className="mt-2 truncate text-base font-black tracking-tight text-white md:text-lg">Command Center cho ứng dụng Termux riêng của bạn</h2>
+                        <p className="mt-1 text-[11px] leading-relaxed text-[#8B949E]">
+                          Một luồng rõ ràng từ prompt → agent → workspace → deploy, tối ưu cho mobile, bàn phím ảo và terminal tối màu.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div className="rounded-2xl border border-[#3FB950]/20 bg-[#3FB950]/8 p-3">
+                      <div className="text-[#8B949E]">CPU</div>
+                      <div className="mt-1 text-lg font-black text-[#3FB950]">{latestTelemetry.cpu.toFixed(2)}%</div>
+                    </div>
+                    <div className="rounded-2xl border border-[#58A6FF]/20 bg-[#58A6FF]/8 p-3">
+                      <div className="text-[#8B949E]">AGENTS</div>
+                      <div className="mt-1 text-lg font-black text-[#58A6FF]">{activeAgentCount}/6</div>
+                    </div>
+                    <div className="rounded-2xl border border-[#BC8CFF]/20 bg-[#BC8CFF]/8 p-3">
+                      <div className="text-[#8B949E]">LIVE</div>
+                      <div className="mt-1 text-lg font-black text-[#BC8CFF]">{liveDeploymentsCount}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-4 text-[10px]">
+                  {TERKIX_FLOW_STEPS.map((step) => (
+                    <div key={step.label} className={`group rounded-xl border px-3 py-2 transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.28)] ${step.color}`}>
+                      <div className="font-black tracking-widest">{step.label}</div>
+                      <div className="mt-1 text-[#E6EDF3] normal-case tracking-normal">{step.text}</div>
+                      <div className="mt-1 text-[9px] text-[#8B949E] normal-case tracking-normal">{step.detail}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1 text-[10px]">
+                  {TERKIX_QUICK_ACTIONS.map((action) => (
+                    <button
+                      key={action.label}
+                      type="button"
+                      onClick={() => setCommandText(action.command)}
+                      className="shrink-0 rounded-full border border-[#30363D] bg-[#0D1117]/90 px-3 py-1.5 font-bold text-[#C9D1D9] transition hover:border-[#3FB950]/60 hover:text-[#3FB950]"
+                    >
+                      + {action.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
               
               {/* Actual Terminal Window */}
-              <div className="flex-1 bg-black flex flex-col relative">
+              <div className="terkix-terminal-glass flex-1 bg-black flex flex-col relative">
 
                 {/* Standard Console Log Viewport with dynamic font scales & retro phosphor theme states */}
                 <div 
@@ -2789,7 +2871,7 @@ export default function App() {
                 {/* Fully Integrated Termux Command Console Input field of Termux */}
                 <form
                   onSubmit={handleCommandSubmit}
-                  className="h-11 border-t border-[#1b212c] px-3.5 flex items-center gap-2.5 bg-[#02050a] shrink-0 focus-within:bg-[#03070f] focus-within:border-[#3FB950]/55 transition-all duration-150"
+                  className="h-12 border-t border-[#1b212c] px-3.5 flex items-center gap-2.5 bg-[#02050a]/95 shrink-0 focus-within:bg-[#03070f] focus-within:border-[#3FB950]/55 transition-all duration-150 shadow-[0_-18px_40px_rgba(0,0,0,0.38)]"
                 >
                   <span className="text-emerald-400 font-extrabold font-mono text-[12.5px] select-none tracking-tight animate-pulse">~ $</span>
                   <input
@@ -2797,7 +2879,7 @@ export default function App() {
                     value={commandText}
                     onChange={(e) => setCommandText(e.target.value)}
                     disabled={isProcessing}
-                    placeholder="Nhập lệnh hoặc yêu cầu tự động chỉnh sửa ứng dụng..."
+                    placeholder="Nhập lệnh TerKix hoặc mô tả app muốn tạo/tối ưu..."
                     className="bg-transparent border-none outline-none flex-1 font-mono text-[11.5px] md:text-[12px] font-bold text-white placeholder-gray-600 focus:ring-0 select-text leading-relaxed tracking-wide"
                     autoFocus
                   />
@@ -2827,7 +2909,7 @@ export default function App() {
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="p-1 px-3 text-[#0D1117] font-bold text-xs font-sans rounded bg-[#3FB950] hover:bg-green-500 transition flex items-center gap-1 cursor-pointer shrink-0 pointer-events-auto"
+                    className="p-1.5 px-4 text-[#0D1117] font-black text-xs font-sans rounded-lg bg-[#3FB950] hover:bg-green-400 transition flex items-center gap-1.5 cursor-pointer shrink-0 pointer-events-auto shadow-[0_0_18px_rgba(63,185,80,0.28)] disabled:opacity-50"
                   >
                     <span>run</span>
                     <Send size={10} />

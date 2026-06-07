@@ -50,3 +50,40 @@
 .emerald-border-glow {
   box-shadow: 0 0 15px rgba(52, 211, 153, 0.12);
 }
+
+.terkix-grid-bg::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 12% 8%, rgba(63, 185, 80, 0.12), transparent 28%),
+    radial-gradient(circle at 85% 16%, rgba(88, 166, 255, 0.14), transparent 30%),
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+  mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.72));
+}
+
+.terkix-command-deck {
+  position: relative;
+  overflow: hidden;
+}
+
+.terkix-command-deck::after {
+  position: absolute;
+  top: -45%;
+  right: -12%;
+  width: 360px;
+  height: 360px;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(circle, rgba(63, 185, 80, 0.14), transparent 64%);
+  filter: blur(2px);
+}
+
+.terkix-terminal-glass {
+  background:
+    linear-gradient(180deg, rgba(8, 11, 16, 0.92), rgba(0, 0, 0, 0.98)),
+    radial-gradient(circle at 50% 0%, rgba(63, 185, 80, 0.08), transparent 36%);
+}
